@@ -1,4 +1,4 @@
-from chain import rerank_chain, rag_chain
+from chain import rerank_chain, rag_chain, upgrade_chain
 from self_rag import model as correct_chain
 from baseline import sql_chain as baseline_chain
 from utils import * 
@@ -41,6 +41,8 @@ async def batch_process(data, batch_size, wait_time,
         chain = rerank_chain
     elif model == 'self-rag':
         chain = correct_chain
+    elif model == 'upgrade':
+        chain = upgrade_chain
     else:
         raise ValueError("Please insert argument model from [rag, rerank, baseline, self-rag]")
     
@@ -55,6 +57,7 @@ async def batch_process(data, batch_size, wait_time,
         else:
             input_chunks = [{'question': row['question'], 'schema': row[schema_col]} for index, row in batch.iterrows()]
             
+  
         if model != 'self-rag':
             outputs_chunk = await chain.abatch(input_chunks)
         else:
@@ -62,6 +65,7 @@ async def batch_process(data, batch_size, wait_time,
         
         outputs_chunk = list(map(lambda x: x.replace('\n', ' '), outputs_chunk))
         res.extend(outputs_chunk)
+        
 
         await asyncio.sleep(wait_time)
         
@@ -69,23 +73,23 @@ async def batch_process(data, batch_size, wait_time,
 
 async def main() -> None:
     model, question_path, output_path, schema_col = process_arguments()
-
+    
+    if not os.path.exists(os.path.dirname(output_path)):
+            os.mkdir(os.path.dirname(output_path))
+            logging.info('Output directory has been created!')
+            
+    # if os.path.exists(output_path):
+    #     os.remove(output_path)
+    #     logging.info('Output files has been deleted!')
+        
     # df = pd.read_csv('/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.csv')
-    df = pd.read_csv(question_path).loc
+    df = pd.read_csv(question_path)[20:]
 
     
     logging.info(f'Evaluating academic database')
     # db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.sqlite'
     outputs = await batch_process(df, 20, 5, model, schema_col)
     
-    if not os.path.exists(os.path.dirname(output_path)):
-            os.mkdir(os.path.dirname(output_path))
-            logging.info('Output directory has been created!')
-            
-    if os.path.exists(output_path):
-        os.remove(output_path)
-        logging.info('Output files has been deleted!')
-        
     with open(output_path, 'a') as f:
         for output in outputs:
             f.write(f"{output}\n")

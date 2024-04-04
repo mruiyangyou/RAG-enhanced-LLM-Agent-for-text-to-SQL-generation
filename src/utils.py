@@ -30,9 +30,16 @@ def connect_db(type = 'url', **kwargs):
 def format_redshift_uri():
     return f"redshift+psycopg2://{os.environ['redshift_user']}:{os.environ['redshift_pass']}@redshift-cluster-comp0087-demo.cvliubs5oipw.eu-west-2.redshift.amazonaws.com:5439/comp0087"
     
-async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> pd.DataFrame:
+# async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> pd.DataFrame:
+#     loop = asyncio.get_running_loop()
+#     result = await loop.run_in_executor(executor, db.run, query)
+#     return result
+async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> str:
     loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(executor, db.run, query)
+    try:
+        result = await loop.run_in_executor(executor, db.run, query)
+    except Exception as e:
+        result = 'Error'
     return result
 
 async def execute_all_queries(db: SQLDatabase, question_df: pd.DataFrame, input_col_name: str, output_col_name: str) -> pd.DataFrame:
@@ -187,14 +194,15 @@ def summarise_keywords_from_result(retrieved_docs: List[Document]) -> str:
 
     # If the keywords appears twice, it is considered relevant
     keywords_selected = [word for word, count in word_counts.items() if count >= 2]
-    ignore_keywords = ['select', 'from']
+    # ignore_keywords = ['select', 'from']
     
-    return [keyword for keyword in keywords_selected if keyword not in ignore_keywords]
+    # return [keyword for keyword in keywords_selected if keyword not in ignore_keywords]
+    return keywords_selected
     
 def summarise_qa_from_result(retrieved_docs: List[Document]) -> str:
     
     
-    res = [item.metadata['question'] + '\n' + item.metadata['query'] for item in retrieved_docs]
+    res = ['Question: ' + item.metadata['question'] + '\n' + 'Answer: ' + item.metadata['query'] for item in retrieved_docs]
     return '\n'.join(res)
     
 # def get_query_result(query):

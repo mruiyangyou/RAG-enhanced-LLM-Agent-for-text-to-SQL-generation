@@ -10,8 +10,8 @@ from utils import *
 # llm  = ChatOllama(model =llm_name, system='Given an input question, convert it to a SQL query. No pre-amble.')
 llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 
-def get_schema(db):
-    return db.get_table_info()
+# def get_schema(db):
+#     return db.get_table_info()
 
 
 template = """Based on the table schema below, write a SQL query that would answer the user's question:

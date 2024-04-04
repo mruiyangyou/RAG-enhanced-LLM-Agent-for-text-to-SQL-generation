@@ -1,4 +1,4 @@
-from chain import rerank_chain, rag_chain
+from chain import rerank_chain, rag_chain, upgrade_chain
 from self_rag import model as correct_chain
 from baseline import sql_chain as baseline_chain
 from utils import * 
@@ -46,6 +46,8 @@ async def batch_process(data, batch_size, wait_time,
         chain = rerank_chain
     elif model == 'self-rag':
         chain = correct_chain
+    elif model == 'upgrade':
+        chain = upgrade_chain
     else:
         raise ValueError("Please insert argument model from [rag, rerank, baseline, self-rag]")
     
@@ -75,7 +77,7 @@ async def main() -> None:
     model, question_path, db_path,output_path = process_arguments()
 
     # df = pd.read_csv('/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.csv')
-    df = pd.read_csv(question_path).loc
+    df = pd.read_csv(question_path)
     print(len(df))
 
     
@@ -85,7 +87,7 @@ async def main() -> None:
     db = connect_db('engine', engine = engine)
     logging.info(f'Successfully connect to {db_path}')
     schema = db.get_table_info()
-    outputs = await batch_process(df, 20, 5, model, schema)
+    outputs = await batch_process(df, 20, 30, model, schema)
     assert len(outputs) == len(df)
     df['predicted'] = outputs
 

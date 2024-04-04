@@ -1,6 +1,7 @@
 from typing import Dict, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import END, StateGraph
+from langgraph.graph import StateGraph
 from chain import *
 from sqlalchemy import create_engine
 
@@ -10,7 +11,7 @@ class GraphState(TypedDict):
     
 # graph
 
-#db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/src/evaluation/database/academic/academicv1223round10group3.sqlite'   
+# db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/src/evaluation/database/academic/academicv1223round10group3.sqlite'   
 db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.sqlite'
 engine = create_engine(f'sqlite:///{db_path}')
 db = connect_db('engine', engine = engine)
@@ -123,7 +124,7 @@ def decide_to_finish(state: GraphState):
     error = state_dict["error"]
     iter = state_dict["iterations"]
 
-    if error == "None" or iter == 3:
+    if error == "None" or iter == 4:
         # All documents have been filtered check_relevance
         # We will re-generate a new query
         print("---DECISION: TEST CODE EXECUTION---")
