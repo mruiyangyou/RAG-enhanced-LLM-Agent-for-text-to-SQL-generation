@@ -38,3 +38,62 @@ From the following table, write a SQL query to find those customers who placed o
 
 Write a SQL statement to make a report with customer name, city, order number, order date, and order amount in ascending order according to the order date to determine whether any of the existing customers have placed an order or not.
 
+List the names of customers and their corresponding salesmen for customers who have placed orders over $1000.
+
+Find the total number of orders placed by customers in each city.
+
+Identify salespeople who have not sold to any customer in 'New York'.
+
+Determine the average order value for each salesman, ordered by average order value in descending order.
+
+Count the number of salespeople who have a commission rate higher than the average commission rate of all salespeople.
+
+Display the name of each salesman along with their highest single order amount.
+
+List all salesmen and the total number of orders they have processed, including those with zero orders.
+
+Calculate the total sales amount for salespeople based in 'Paris'.
+
+Find customers who have been served by more than one salesman.
+
+Show the date of the first order placed by each customer.
+
+List the top 3 customers by total order amount in 'London'.
+
+For each salesman, count how many orders above $500 they have processed.
+
+Identify the month with the highest total sales amount.
+
+Find all customers who have not placed any order since 2012-01-01.
+
+List salesmen who have processed orders but have never sold to customers in 'California'.
+
+Show cities that have generated total orders over $5000.
+
+Determine the total number of unique cities where salesmen are located.
+
+Identify the salesman with the lowest total sales amount and list all of his customers.
+
+Calculate the difference between the highest and lowest order amounts for each salesman.
+
+List each salesman's name and their largest single sale amount to any customer.
+
+Show the total number of orders placed on weekends.
+
+Determine the average number of days between orders for each customer.
+
+List customers and their last order date, for those who have placed more than 5 orders.
+
+Identify the salesman who has the most customers with a grade above 200.
+
+List all salesmen and their respective customers from New York.
+
+How many orders were placed by customers in Paris?
+
+Identify the salesman with the highest commission in Paris.
+
+Show the total purchase amount for orders placed in October 2012.
+
+Find all customers served by salesmen from their same city.
+
+What is the average purchase amount of orders handled by each salesman?

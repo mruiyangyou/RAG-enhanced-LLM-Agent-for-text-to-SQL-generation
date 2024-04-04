@@ -37,3 +37,63 @@ SELECT ord_no, cust_name, commission AS "Commission%", purch_amt * commission AS
 SELECT * FROM customer a, orders b WHERE a.customer_id = b.customer_id AND b.ord_date = '2012-10-05';
 
 SELECT a.cust_name, a.city, b.ord_no, b.ord_date, b.purch_amt AS "Order Amount" FROM customer a LEFT OUTER JOIN orders b ON a.customer_id = b.customer_id ORDER BY b.ord_date;
+
+SELECT c.cust_name, s.name FROM customer c JOIN orders o ON c.customer_id = o.customer_id JOIN salesman s ON c.salesman_id = s.salesman_id WHERE o.purch_amt > 1000;
+
+SELECT c.city, COUNT(o.ord_no) AS total_orders FROM customer c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.city;
+
+SELECT s.name FROM salesman s WHERE NOT EXISTS (SELECT * FROM customer c WHERE c.city = 'New York' AND c.salesman_id = s.salesman_id);
+
+SELECT s.name, AVG(o.purch_amt) AS avg_order_value FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id ORDER BY AVG(o.purch_amt) DESC;
+
+SELECT COUNT(*) FROM salesman WHERE commission > (SELECT AVG(commission) FROM salesman);
+
+SELECT s.name, MAX(o.purch_amt) FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id;
+
+SELECT s.name, COUNT(o.ord_no) FROM salesman s LEFT JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id;
+
+SELECT SUM(o.purch_amt) FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id WHERE s.city = 'Paris';
+
+SELECT c.cust_name FROM customer c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id HAVING COUNT(DISTINCT c.salesman_id) > 1;
+
+SELECT c.cust_name, MIN(o.ord_date) FROM customer c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id;
+
+SELECT c.cust_name, SUM(o.purch_amt) AS total_order_amount FROM customer c JOIN orders o ON c.customer_id = o.customer_id WHERE c.city = 'London' GROUP BY c.customer_id ORDER BY total_order_amount DESC LIMIT 3;
+
+SELECT s.name, COUNT(*) FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id WHERE o.purch_amt > 500 GROUP BY s.salesman_id;
+
+SELECT STRFTIME('%Y-%m', ord_date) AS month, SUM(o.purch_amt) AS total_sales FROM orders o GROUP BY month ORDER BY total_sales DESC LIMIT 1;
+
+SELECT c.cust_name FROM customer c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.ord_date < '2012-01-01' OR o.ord_no IS NULL;
+
+SELECT DISTINCT s.name FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id LEFT JOIN customer c ON o.customer_id = c.customer_id WHERE c.city <> 'California' OR c.city IS NULL;
+
+SELECT c.city, SUM(o.purch_amt) FROM orders o JOIN customer c ON o.customer_id = c.customer_id GROUP BY c.city HAVING SUM(o.purch_amt) > 5000;
+
+SELECT COUNT(DISTINCT s.city) FROM salesman s;
+
+SELECT s.name, c.cust_name FROM salesman s JOIN customer c ON s.salesman_id = c.salesman_id LEFT JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id ORDER BY SUM(o.purch_amt) ASC LIMIT 1;
+
+SELECT s.name, MAX(o.purch_amt) - MIN(o.purch_amt) FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id;
+
+SELECT s.name, MAX(o.purch_amt) FROM salesman s JOIN orders o ON s.salesman_id = o.salesman_id GROUP BY s.salesman_id;
+
+SELECT COUNT(*) FROM orders WHERE STRFTIME('%w', ord_date) IN ('0', '6');
+
+SELECT c.cust_name, AVG(julianday(o2.ord_date) - julianday(o1.ord_date)) AS avg_days_between_orders FROM orders o1 JOIN orders o2 ON o1.customer_id = o2.customer_id AND o2.ord_date > o1.ord_date JOIN customer c ON o1.customer_id = c.customer_id GROUP BY o1.customer_id;
+
+SELECT c.cust_name, MAX(o.ord_date) FROM customer c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id HAVING COUNT(o.ord_no) > 5;
+
+SELECT s.name FROM salesman s JOIN customer c ON s.salesman_id = c.salesman_id WHERE c.grade > 200 GROUP BY s.salesman_id ORDER BY COUNT(c.customer_id) DESC LIMIT 1;
+
+SELECT s.name AS Salesman_Name, c.cust_name AS Customer_Name FROM salesman s JOIN customer c ON s.salesman_id = c.salesman_id WHERE c.city = 'New York';
+
+SELECT COUNT(o.ord_no) AS Total_Orders FROM orders o JOIN customer c ON o.customer_id = c.customer_id WHERE c.city = 'Paris';
+
+SELECT name, MAX(commission) AS Highest_Commission FROM salesman WHERE city = 'Paris';
+
+SELECT SUM(purch_amt) AS Total_Purchase_Amount FROM orders WHERE ord_date BETWEEN '2012-10-01' AND '2012-10-31';
+
+SELECT c.cust_name AS Customer_Name, s.name AS Salesman_Name FROM customer c JOIN salesman s ON c.salesman_id = s.salesman_id WHERE c.city = s.city;
+
+SELECT s.name AS Salesman_Name, AVG(o.purch_amt) AS Average_Purchase_Amount FROM orders o JOIN salesman s ON o.salesman_id = s.salesman_id GROUP BY s.salesman_id;
