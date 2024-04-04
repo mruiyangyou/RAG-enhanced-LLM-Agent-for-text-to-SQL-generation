@@ -8,10 +8,10 @@
 2. schema in tian'w work become list of dictionary(a)
 3. a and input in luo's
     -->
-
+<!-- 
 ## Bug fix
 
-cohere_rank.py add results
+cohere_rank.py add results -->
 
 ## Evaluation Scripts
 

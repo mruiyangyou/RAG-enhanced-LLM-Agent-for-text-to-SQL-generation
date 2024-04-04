@@ -16,5 +16,5 @@ openai
 pinecone-client          
 pinecone-text
 python-dotenv
-ragas
+cohere
 langgraph
