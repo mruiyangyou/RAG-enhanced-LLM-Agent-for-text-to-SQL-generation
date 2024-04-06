@@ -5,6 +5,10 @@ This repository contains all the relevant codes for building a RAG enhanced LLM 
 ## Tech Stack
 ![My Skills](https://skillicons.dev/icons?i=py,postgres,ansible,aws,docker)
 
+## Architecture
+The text-to-SQL architecture, as shown in the figure below, receives two pivotal inputs: the user's natural language question and the database's Data Definition Language (DDL), which outlines the database's schema. The DDL plays a critical role, in equipping the Language Model (LLM) with the necessary context of the available tables and fields for formulating queries. The process commences with a Question Masking step that selectively conceals schema-specific keywords, thus preserving the integral framework of the question. This masked version then acts as a query to fetch the three most structurally similar question-and-answer pairs from a vector database. Retrieving these pairs facilitates the LLM in generating the SQL commands and accessing related documentation relevant to the user's question. Subsequently, a comprehensive prompt is crafted, integrating DDL, SQL Q&A pairs and documentation, which is presented to the LLM for SQL query generation. After the LLM generates the SQL query, it is executed within the user’s database. In the event of execution errors, the LLM is equipped with a self-corrective feature that allows for reiteration, refining the query until a successful execution is achieved.
+![Architecture](./architecture.png)
+
 
 ## Play with the codes
 Install relevant packages
