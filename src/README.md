@@ -19,20 +19,20 @@ cohere_rank.py add results -->
 ### eval_custom
 ```bash
 python eval_custom.py "rag" "../data/inventory/inventory.csv" \
-        "../data/inventory/inventory.sqlite" "evaluation/out/test/predict.csv"
+        "../data/inventory/inventory.sqlite" "evaluation/out/xxx/predict.csv"
 ```
 
 ### eval_academic
 ```bash
 python eval_academic.py "rag" \
         "../data/sql_test_suite_academic/masked_academic_sample.csv" \
-        "evaluation/out/test/v4/predict.txt" \
+        "evaluation/out/xxx/predict.txt" \
         "schema"
 ```
 
 ### eval_test_suite
 ```bash
-python eval_test_suite.py "rag" "evaluation" "evaluation/out/test/v6/predict.csv"
+python eval_test_suite.py "rag" "evaluation" "evaluation/out/xxx/predict.csv"
 ```
 <!-- 
 RAG-enhanced LLM Agent for text to SQL geneeation

@@ -11,16 +11,43 @@ from collections import Counter
 from nltk.stem import WordNetLemmatizer
 from langchain.schema import Document
 
-def connect_db(type = 'url', **kwargs):
+def connect_db(type='url', **kwargs):
+    """
+    Connects to a SQL database either through a URI string or an SQLAlchemy engine.
+
+    Parameters:
+    - type (str): Specifies the connection type ('url' for URI string, 'engine' for SQLAlchemy engine).
+    - **kwargs: Additional keyword arguments specific to the connection type.
+
+    Returns:
+    - SQLDatabase instance connected as specified.
+    """
     if type == 'url':
         return SQLDatabase.from_uri(**kwargs)
     elif type == 'engine':
         return SQLDatabase(**kwargs)
 
 def format_redshift_uri():
+    """
+    Formats a Redshift database URI using environment variables for user and password.
+
+    Returns:
+    - A formatted URI string for connecting to a Redshift database.
+    """
     return f"redshift+psycopg2://{os.environ['redshift_user']}:{os.environ['redshift_pass']}@redshift-cluster-comp0087-demo.cvliubs5oipw.eu-west-2.redshift.amazonaws.com:5439/comp0087"
-    
+
 async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> str:
+    """
+    Asynchronously executes a SQL query using a thread pool executor.
+
+    Parameters:
+    - db (SQLDatabase): The database connection object.
+    - query (str): The SQL query to execute.
+    - executor (ThreadPoolExecutor): The executor for asynchronous execution.
+
+    Returns:
+    - The query result as a string, or 'Error' if execution fails.
+    """
     loop = asyncio.get_running_loop()
     try:
         result = await loop.run_in_executor(executor, db.run, query)
@@ -29,15 +56,27 @@ async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExe
     return result
 
 async def execute_all_queries(db: SQLDatabase, question_df: pd.DataFrame, input_col_name: str, output_col_name: str) -> pd.DataFrame:
+    """
+    Asynchronously executes multiple SQL queries stored in a DataFrame column, updating the DataFrame with the results.
+
+    Parameters:
+    - db (SQLDatabase): The database connection object.
+    - question_df (pd.DataFrame): DataFrame containing the queries to execute.
+    - input_col_name (str): Name of the column containing the SQL queries.
+    - output_col_name (str): Name of the column where results will be stored.
+
+    Returns:
+    - The updated DataFrame with query results stored in 'output_col_name'.
+    """
     with ThreadPoolExecutor() as executor:
         tasks = [
             execute_sql_async(db, query, executor)
             for query in question_df[input_col_name]
         ]
         results = await asyncio.gather(*tasks)
-    # Assuming each result is a DataFrame, concatenate them
     question_df[output_col_name] = results
     return question_df
+
 
 def load_data_langsmith(df: pd.DataFrame, dataset_name: str, description: str, answer: bool = False) -> None:
     """
