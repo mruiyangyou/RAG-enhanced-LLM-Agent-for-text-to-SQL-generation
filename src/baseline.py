@@ -6,14 +6,10 @@ from langchain_core.output_parsers import StrOutputParser
 from operator import itemgetter
 from utils import *
 
-# llm_name = 'mistral'
-# llm  = ChatOllama(model =llm_name, system='Given an input question, convert it to a SQL query. No pre-amble.')
+# llm
 llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 
-# def get_schema(db):
-#     return db.get_table_info()
-
-
+# template
 template = """Based on the table schema below, write a SQL query that would answer the user's question:
 {schema}
 
@@ -26,7 +22,7 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-
+# baseline model
 sql_chain = (
     RunnableParallel({
         'schema': itemgetter('schema'),

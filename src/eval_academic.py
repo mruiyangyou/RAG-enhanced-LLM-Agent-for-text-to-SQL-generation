@@ -11,6 +11,7 @@ from typing import Tuple
 import tqdm
 import pandas as pd
 
+# logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -28,7 +29,7 @@ def process_arguments() -> Tuple[str, int]:
     args = parser.parse_args()
     return args.model, args.question_path,args.output_path, args.schema_col
 
-
+# batch evaluation
 async def batch_process(data, batch_size, wait_time, 
                         model, schema_col):
     res = []
@@ -74,17 +75,12 @@ async def batch_process(data, batch_size, wait_time,
 async def main() -> None:
     model, question_path, output_path, schema_col = process_arguments()
     
+    # create directory for saving
     if not os.path.exists(os.path.dirname(output_path)):
             os.mkdir(os.path.dirname(output_path))
             logging.info('Output directory has been created!')
-            
-    # if os.path.exists(output_path):
-    #     os.remove(output_path)
-    #     logging.info('Output files has been deleted!')
-        
-    # df = pd.read_csv('/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.csv')
-    df = pd.read_csv(question_path)[20:]
-
+   
+    df = pd.read_csv(question_path)
     
     logging.info(f'Evaluating academic database')
     # db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.sqlite'

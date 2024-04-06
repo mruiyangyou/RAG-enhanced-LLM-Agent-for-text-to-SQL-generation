@@ -6,24 +6,19 @@ from chain import *
 from sqlalchemy import create_engine
 
 class GraphState(TypedDict):
-    
     keys: Dict[str, any]
     
 # graph
-
 # db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/src/evaluation/database/academic/academicv1223round10group3.sqlite'   
 db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.sqlite'
 engine = create_engine(f'sqlite:///{db_path}')
 db = connect_db('engine', engine = engine)
     
+# check function
 def exec(code: str) -> None:
-    # result = db.run(code)
-    # if result == '':
-    #     raise ValueError('The execution did not produce any output. Please check your used table and use correct sql functions!')
-    # No need to call db.run(code) again
     db.run(code)
 
-
+# agent flow
 def generate(state: GraphState):
     
     # state

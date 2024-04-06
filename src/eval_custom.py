@@ -12,6 +12,7 @@ from typing import Tuple
 import tqdm
 import pandas as pd
 
+# logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -33,7 +34,7 @@ def process_arguments() -> Tuple[str, int]:
     # print(f"Output path of txt files: {args.output_path}")
     return args.model, args.question_path, args.db_path, args.output_path
 
-
+# batch evaluating
 async def batch_process(data, batch_size, wait_time, 
                         model, schema):
     res = []
@@ -76,13 +77,8 @@ async def batch_process(data, batch_size, wait_time,
 async def main() -> None:
     model, question_path, db_path,output_path = process_arguments()
 
-    # df = pd.read_csv('/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.csv')
     df = pd.read_csv(question_path)
-    print(len(df))
-
-    
     logging.info(f'Evaluating {db_path} database')
-    # db_path = '/Users/marceloyou/Desktop/UCL-DSML/COMP0087-Boss/SQLess/data/inventory/inventory.sqlite'
     engine = create_engine(f'sqlite:///{db_path}')
     db = connect_db('engine', engine = engine)
     logging.info(f'Successfully connect to {db_path}')

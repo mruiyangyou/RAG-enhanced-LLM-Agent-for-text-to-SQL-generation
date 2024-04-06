@@ -3,23 +3,13 @@ import pandas as pd
 from typing import List, Dict
 from langchain_community.utilities import SQLDatabase
 import asyncio
-from dotenv import find_dotenv, load_dotenv
 import os
 from concurrent.futures import ThreadPoolExecutor
 import pickle
 import re
 from collections import Counter
 from nltk.stem import WordNetLemmatizer
-from nltk.stem import PorterStemmer
 from langchain.schema import Document
-
-
-# _ = load_dotenv(find_dotenv())
-
-# def connect_db(schema: str, type = 'url'):
-#     database_uri = f"redshift+psycopg2://{os.environ['redshift_user']}:{os.environ['redshift_pass']}@redshift-cluster-comp0087-demo.cvliubs5oipw.eu-west-2.redshift.amazonaws.com:5439/comp0087"
-#     sqldb = SQLDatabase.from_uri(database_uri=database_uri, schema = schema)
-#     return sqldb
 
 def connect_db(type = 'url', **kwargs):
     if type == 'url':
@@ -30,10 +20,6 @@ def connect_db(type = 'url', **kwargs):
 def format_redshift_uri():
     return f"redshift+psycopg2://{os.environ['redshift_user']}:{os.environ['redshift_pass']}@redshift-cluster-comp0087-demo.cvliubs5oipw.eu-west-2.redshift.amazonaws.com:5439/comp0087"
     
-# async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> pd.DataFrame:
-#     loop = asyncio.get_running_loop()
-#     result = await loop.run_in_executor(executor, db.run, query)
-#     return result
 async def execute_sql_async(db: SQLDatabase, query: str, executor: ThreadPoolExecutor) -> str:
     loop = asyncio.get_running_loop()
     try:
@@ -53,35 +39,60 @@ async def execute_all_queries(db: SQLDatabase, question_df: pd.DataFrame, input_
     question_df[output_col_name] = results
     return question_df
 
-def load_data_langsmith(df: pd.DataFrame, dataset_name: str,
-                        desciption: str, answer: bool = False) -> None:
+def load_data_langsmith(df: pd.DataFrame, dataset_name: str, description: str, answer: bool = False) -> None:
+    """
+    Loads data into Langsmith from a DataFrame, optionally including answers.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing the data to load.
+    - dataset_name (str): The name for the new dataset in Langsmith.
+    - description (str): A description for the new dataset.
+    - answer (bool, optional): Whether to include answers in the data. Defaults to False.
+
+    The function creates a new dataset in Langsmith and populates it with examples
+    from the DataFrame. If 'answer' is True, each example includes a question, query, and answer.
+    Otherwise, examples include only questions and queries.
+    """
     client = Client()
     
     dataset = client.create_dataset(
-    dataset_name=dataset_name,
-    description=desciption
-        )
+        dataset_name=dataset_name,
+        description=description
+    )
     if not answer:
         client.create_examples(
             inputs=[{"question": q} for q in df.question.values],
             outputs=[{"query": q} for q in df["query"].values],
             dataset_id=dataset.id,
-            )
+        )
     else:
         client.create_examples(
             inputs=[{"question": q} for q in df.question.values],
-            outputs=[{"query": q, "answer": a} for q,a in zip(df["query"].values, df["answer"].values)],
+            outputs=[{"query": q, "answer": a} for q, a in zip(df["query"].values, df["answer"].values)],
             dataset_id=dataset.id,
-            )
-            
+        )
+
 def load_testpkl_df(path: str) -> pd.DataFrame:
+    """
+    Loads a DataFrame from a pickle file, specifically for test datasets.
+
+    Parameters:
+    - path (str): The file path to the pickle file containing the dataset.
+
+    Returns:
+    - pd.DataFrame: A DataFrame containing the test dataset, with columns for
+      the question text, database ID, and database path.
+    
+    This function reads a pickle file into a DataFrame, selecting specific columns
+    ('text', 'db_id', 'db_path') and renaming 'text' to 'question'.
+    """
     with open(path, 'rb') as file:
         data = pickle.load(file)
         
     df = pd.DataFrame(data)[['text', 'db_id', 'db_path']].rename(columns={'text': 'question'})
     return df
 
-
+# parse the sql schema
 def sql_parse(text: str) -> Dict[str, List[str]]:
     sql_split = text.split("\n")
     schema = {}
@@ -103,7 +114,6 @@ def sql_parse(text: str) -> Dict[str, List[str]]:
 
 # Function to find if any three consecutive letters in word are in a column name
 def contains_consecutive(word, column_name):
-    
     for i in range(len(word) - 3):
         substring = word[i:i+4]
         if substring in column_name:
@@ -112,11 +122,17 @@ def contains_consecutive(word, column_name):
 
 # Mask the question
 def mask_question(question, db_schema, common_schema_toks = None):
+    """Mask the question, replace colname table name with <mask>
+
+    Args:
+        question: question to be encoded
+        db_schema: database schema
+        common_schema_toks (optional): Words to avoid masked. Defaults to None.
+
+    Returns:
+        str: masked question
+    """
     words = question.split()
-    
-    # Create a stemmer object
-    # stemmer = PorterStemmer()
-    # words = [stemmer.stem(word) for word in words]
     
     # Create a WordNetLemmatizer object
     lemmatizer = WordNetLemmatizer()
@@ -163,63 +179,77 @@ def mask_question(question, db_schema, common_schema_toks = None):
         return ' '.join(words)
 
 def get_schema_related_toks(row):
-    schema_toks = []
+    """
+    Extracts and aggregates schema-related tokens from a row.
+
+    Parameters:
+    - row: A row from a DataFrame, expected to contain 'tables' and 'columns'.
+
+    Returns:
+    - List[str]: A list of schema-related tokens including table names and columns.
+    """
     schema_toks = [table[0] for table in row['tables']]
     schema_toks += row['columns']
     return schema_toks
 
 def mask_question_df(row, common_schema_related_toks):
+    """
+    Masks schema-related tokens in a question based on common schema tokens.
+
+    Parameters:
+    - row: A row from a DataFrame, expected to contain 'question' and 'schema_toks'.
+    - common_schema_related_toks: List of common schema-related tokens to be masked in the question.
+
+    Returns:
+    - The masked question text.
+    """
     question, db_schema = row['question'], row['schema_toks']
     return mask_question(question, db_schema, common_schema_related_toks)
 
 def search_in_document(df: pd.DataFrame, keywords: List[str]) -> str:
+    """
+    Searches for keywords in document titles and aggregates matching document content.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing document 'title' and 'content'.
+    - keywords (List[str]): List of keywords to search for in document titles.
+
+    Returns:
+    - str: Aggregated content of documents whose titles contain any of the keywords.
+    """
     res = []
-    
     for keyword in keywords:
-       
         mask = df['title'].apply(lambda x: keyword in str(x).lower())
         res.extend(df[mask].content.to_list())
-        
     return '\n'.join(res)
-    
-from collections import Counter
 
+def summarise_keywords_from_result(retrieved_docs: List[Document]) -> List[str]:
+    """
+    Summarizes keywords from retrieved documents, filtering out common SQL keywords.
 
-def summarise_keywords_from_result(retrieved_docs: List[Document]) -> str:
-    
+    Parameters:
+    - retrieved_docs (List[Document]): List of retrieved Document objects with metadata.
+
+    Returns:
+    - List[str]: List of relevant, summarized keywords from the documents' metadata.
+    """
     keywords = [item.metadata['sql_keywords'] for item in retrieved_docs]
     keywords = [item.split(',') for item in keywords]
     keywords = [words for lst in keywords for words in lst]
     word_counts = dict(Counter(keywords))
-
-    # If the keywords appears twice, it is considered relevant
     keywords_selected = [word for word, count in word_counts.items() if count >= 2]
-    # ignore_keywords = ['select', 'from']
-    
-    # return [keyword for keyword in keywords_selected if keyword not in ignore_keywords]
-    return keywords_selected
-    
+    ignore_keywords = ['select', 'from']
+    return [keyword for keyword in keywords_selected if keyword not in ignore_keywords]
+
 def summarise_qa_from_result(retrieved_docs: List[Document]) -> str:
-    
-    
+    """
+    Summarizes questions and answers from retrieved documents.
+
+    Parameters:
+    - retrieved_docs (List[Document]): List of retrieved Document objects with metadata.
+
+    Returns:
+    - str: Formatted summary of questions and their corresponding answers from documents.
+    """
     res = ['Question: ' + item.metadata['question'] + '\n' + 'Answer: ' + item.metadata['query'] for item in retrieved_docs]
     return '\n'.join(res)
-    
-# def get_query_result(query):
-#     return vectorstore.similarity_search(query, k=3)
-
-# def clean_output(path, out):
-#     path = 'evaluation/out/secondmodel.txt'
-#     out = 'evaluation/out/secondmodel2.txt'
-#     with open(path, 'r') as f, open(out, 'w') as output:
-#         for l in f: 
-#             if 'SELECT' in l:
-#                 line = l.replace('"', '')
-#                 line = re.sub(r" LIMIT \d+", "", line, flags=re.IGNORECASE)
-#                 if "```sql " in l:
-#                     line = line.replace('```sql ', '')
-#                 if '```' in l:
-#                     line = line.replace('```', '')
-                
-#             output.write(str(line))
-        

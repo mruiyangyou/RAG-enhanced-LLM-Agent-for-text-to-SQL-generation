@@ -12,21 +12,7 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CohereRerank
 from langchain_pinecone import PineconeVectorStore
 
-
-# define template and needed csv
-# template = """
-# You are an assistant for giving text to sql task.
-# Based on the database schema, relevant SQL documentation related to the question for syntax and function guidance, relevant example pairs of question-answer for more insights:
-# - Database schema: {schema} 
-# - SQL documentation: \n{docs} 
-# - SQL simdilar examples: \n{examples} 
-
-# Write a SQL query that would answer the user's question.
-
-# Question: {question} 
-# SQL Query:
-# """
-
+# main template
 template = """
 You are an assistant for giving text to sql task.
 Based on the table schema, relevant SQL documentation related to the question where you can learnt some functions, relevant example pairs of question-answer for SQL below
@@ -40,23 +26,25 @@ Question: {question}
 SQL Query:
 """
 
-
+# template for chain of thought
 unfamilair_template = """
 Given the question {question}, return me the unfamiliar terms and their one sentence explanations in this format: 
 
 1.  term 1: explanation one 
 2.  term 2: explanation two 
 """
+
+# chain of though
 unfamilair_prompt = ChatPromptTemplate.from_template(unfamilair_template)
 llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 unfamilair_chain = unfamilair_prompt | llm | StrOutputParser()
 
-
+# load data for RAG
 common_schema_related_toks = ['student', 'course', 'department', 'age', 'course', 'ids', 'car', 'player', 'class', 'cities', 'member', 'employee']
 docs = pd.read_csv('../data/sql-meterial/md_data.csv')
 
 
-# retriever - example csv
+# Spider Vectordatabase
 embedd = OpenAIEmbeddings(model = 'text-embedding-ada-002')
 pc = Pineconedb(os.getenv('PINECONE_API_KEY'))
 example_index = pc.load_pinecone_index('sql-sample-rag-test')
@@ -132,6 +120,3 @@ upgrade_chain = (
     
 ).with_config({"tags": ["chain-of-thought"]})
 
-# df = pd.read_csv("../data/sql_test_suite_academic/masked_academic_sample.csv")
-# q, m, schema = df.loc[1, 'question'], df.loc[1, 'masked'], df.loc[1, 'schema']
-# inputs = {'question': q, 'masked': m, 'schema': schema}

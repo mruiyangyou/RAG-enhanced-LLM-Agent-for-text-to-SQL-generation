@@ -30,14 +30,14 @@ docker run -it \
     -e PRED="out/xxx/predict.txt" -e OUT_FILE="out/xxx/result.csv" -e SUBSET="academic" -e RESULT_PATH="out/xxx/result.txt" \
     -v $(pwd)/database:/app/database \
     -v $(pwd)/out:/app/out \
-    sql_test:v2
+    sql_test:v1
 
 ```
 
 
 Docker run sampled academic database
 ```bash
-docker run -it \                                            mlops  14:27:17
+docker run -it \                                          
     -e GOLD="academic_test.pkl" -e PRED="out/xxx/predict.txt" -e OUT_FILE="out/xxx/result.csv" -e SUBSET="academic" -e RESULT_PATH="out/xxx/result.txt" \
     -v $(pwd)/database:/app/database \
     -v $(pwd)/out:/app/out \
